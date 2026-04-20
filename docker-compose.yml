@@ -1,0 +1,102 @@
+networks:
+  db:
+  ai:
+  web:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-eq_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eq_password}
+      POSTGRES_DB: ${POSTGRES_DB:-eq_research}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks: [db]
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eq_user} -d ${POSTGRES_DB:-eq_research}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flux:
+    build: ./flux-api
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - PYTHONUNBUFFERED=1
+      - FLUX_MODEL_ID=${FLUX_MODEL_ID:-}
+      - FLUX_GUIDANCE_SCALE=${FLUX_GUIDANCE_SCALE:-}
+      - FLUX_MAX_SEQUENCE_LENGTH=${FLUX_MAX_SEQUENCE_LENGTH:-}
+      - FLUX_QUANT=${FLUX_QUANT:-}
+      - FLUX_API_SECRET=${FLUX_API_SECRET}
+    volumes:
+      - ./data/hf_cache:/cache/huggingface
+    networks: [ai]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  nextjs:
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-eq_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-eq_research}
+      - HOSTNAME=0.0.0.0
+    command: sh -c "./node_modules/.bin/prisma migrate deploy && node server.js"
+    volumes:
+      - ./data/images:/app/data/images
+    networks: [web, ai, db]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode<400?0:1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks: [web]
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M

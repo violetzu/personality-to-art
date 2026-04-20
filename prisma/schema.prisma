@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Participant {
+  id     Int    @id @default(autoincrement())
+  name   String
+  age    Int
+  gender String
+
+  // TIPI (1-5)
+  tipi1  Int
+  tipi2  Int
+  tipi3  Int
+  tipi4  Int
+  tipi5  Int
+  tipi6  Int
+  tipi7  Int
+  tipi8  Int
+  tipi9  Int
+  tipi10 Int
+
+  // PANAS (1-5)
+  panasActive      Int
+  panasNervous     Int
+  panasHappy       Int
+  panasAnxious     Int
+  panasEnergetic   Int
+  panasUpset       Int
+  panasExcited     Int
+  panasAfraid      Int
+  panasInterested  Int
+  panasDistressed  Int
+  panasInspired    Int
+  panasStressed    Int
+
+  // Big Five computed dimensions
+  extraversion      Float
+  agreeableness     Float
+  conscientiousness Float
+  stability         Float
+  openness          Float
+
+  selfArtPrompt   String?
+  selfDescription String?
+
+  generationLockExpiresAt DateTime?
+
+  createdAt DateTime  @default(now())
+  prompts   Prompt[]
+
+  @@index([name])
+  @@index([createdAt])
+}
+
+model Prompt {
+  id            Int         @id @default(autoincrement())
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  participantId Int
+  promptText    String
+  imageUrl      String
+  analysis      String?
+  createdAt     DateTime    @default(now())
+
+  @@index([participantId])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
