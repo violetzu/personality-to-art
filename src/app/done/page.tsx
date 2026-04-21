@@ -1,7 +1,6 @@
 'use client'
 
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
 function DoneContent() {
@@ -39,12 +38,6 @@ function DoneContent() {
               下載作品
             </a>
           )}
-          <Link
-            href="/"
-            className="inline-block px-8 py-3 border border-gray-200 hover:border-brand-400 text-gray-600 hover:text-brand-700 font-medium rounded-xl transition-colors"
-          >
-            返回首頁
-          </Link>
         </div>
       </div>
     </main>
