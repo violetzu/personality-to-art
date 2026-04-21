@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Markdown from 'react-markdown'
 import QuestionItem from '@/components/QuestionItem'
 import {
   SELF_ART_PROMPT_MAX_LENGTH,
@@ -277,25 +278,8 @@ export default function SurveyForm({
               <p className="text-xs text-gray-400 text-right">
                 {artPrompt.length} / {SELF_ART_PROMPT_MAX_LENGTH}
               </p>
-              <div className="bg-brand-50 rounded-xl p-4 space-y-3 text-xs">
-                <p className="font-medium text-gray-700">你可以從以下幾個方向來思考：</p>
-                {([
-                  { title: '1. 色彩（Color）', hints: ['整體是明亮還是偏暗？', '偏暖色（紅、橘）還是冷色（藍、紫）？', '顏色是強烈、飽和，還是柔和、淡淡的？'], example: '「整體是柔和的粉色調，帶一點暖色系的光」' },
-                  { title: '2. 風格（Style）', hints: ['偏寫實、卡通、抽象，還是夢幻？', '是簡約還是細節很多？', '有沒有特定風格（例如日系、美式、復古、未來感）？'], example: '「偏夢幻插畫風格，有點像童話故事的感覺」' },
-                  { title: '3. 光線與氛圍（Lighting & Mood）', hints: ['是白天、夜晚、黃昏？', '光線是柔和還是強烈？', '整體感覺是溫暖、孤單、神秘、快樂？'], example: '「在夕陽下，光線很溫暖，有點安靜的氛圍」' },
-                  { title: '4. 主體內容（Subject）', hints: ['畫面裡有什麼？（人、動物、物品、場景）', '有沒有特別的動作或情境？'], example: '「一個人在房間裡畫畫，旁邊有貓陪著」' },
-                  { title: '5. 想傳達的感覺（Emotion / Meaning）', hints: ['這個作品代表你的什麼特質？', '想讓別人感受到什麼？'], example: '「代表我比較內向，但很喜歡自己的小世界」' },
-                ] as { title: string; hints: string[]; example: string }[]).map(({ title, hints, example }) => (
-                  <div key={title}>
-                    <p className="font-medium text-gray-700 mb-1">{title}</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-gray-500 mb-1">{hints.map(h => <li key={h}>{h}</li>)}</ul>
-                    <p className="text-gray-400 italic">範例：{example}</p>
-                  </div>
-                ))}
-                <div className="border-t border-brand-200 pt-3">
-                  <p className="font-medium text-gray-700 mb-1">綜合範例</p>
-                  <p className="text-gray-400 italic">「畫的整體偏柔和的暖色調，是在下午有夕陽的時候，一個人坐在海邊，讓我感到很安心，整體插畫風格」</p>
-                </div>
+              <div className="bg-brand-50 rounded-xl p-4 text-xs prose prose-xs max-w-none prose-p:my-1 prose-headings:text-gray-700 prose-headings:font-medium prose-headings:text-xs prose-headings:my-1 prose-ul:my-1 prose-li:my-0 prose-li:text-gray-500 prose-em:text-gray-400 prose-strong:text-gray-700 prose-hr:border-brand-200 prose-hr:my-3">
+                <Markdown>{config.descriptions.artPromptHints}</Markdown>
               </div>
               <textarea
                 value={artPrompt}

@@ -20,6 +20,7 @@ export interface SurveyDescriptions {
   textSubtitle: string
   artPromptInstruction: string
   selfDescInstruction: string
+  artPromptHints: string
 }
 
 export interface SurveyConfig {
@@ -41,6 +42,7 @@ const DESCRIPTION_KEYS = [
   'textSubtitle',
   'artPromptInstruction',
   'selfDescInstruction',
+  'artPromptHints',
 ] as const
 
 export const DIMENSION_LABELS: Record<string, string> = {
@@ -106,6 +108,46 @@ export const DEFAULT_DESCRIPTIONS: SurveyDescriptions = {
   textSubtitle: '最後兩個問題，完成後即可生成專屬藝術作品',
   artPromptInstruction: '請用文字描述一個「最能代表你自己的作品」（不限形式，例如圖片、場景、插畫、風格等）。',
   selfDescInstruction: '請用三～五個詞描述自己，可點選快速標籤或自行輸入',
+  artPromptHints: `你可以從以下幾個方向來思考：
+
+**1. 色彩（Color）**
+- 整體是明亮還是偏暗？
+- 偏暖色（紅、橘）還是冷色（藍、紫）？
+- 顏色是強烈、飽和，還是柔和、淡淡的？
+
+*範例：「整體是柔和的粉色調，帶一點暖色系的光」*
+
+**2. 風格（Style）**
+- 偏寫實、卡通、抽象，還是夢幻？
+- 是簡約還是細節很多？
+- 有沒有特定風格（例如日系、美式、復古、未來感）？
+
+*範例：「偏夢幻插畫風格，有點像童話故事的感覺」*
+
+**3. 光線與氛圍（Lighting & Mood）**
+- 是白天、夜晚、黃昏？
+- 光線是柔和還是強烈？
+- 整體感覺是溫暖、孤單、神秘、快樂？
+
+*範例：「在夕陽下，光線很溫暖，有點安靜的氛圍」*
+
+**4. 主體內容（Subject）**
+- 畫面裡有什麼？（人、動物、物品、場景）
+- 有沒有特別的動作或情境？
+
+*範例：「一個人在房間裡畫畫，旁邊有貓陪著」*
+
+**5. 想傳達的感覺（Emotion / Meaning）**
+- 這個作品代表你的什麼特質？
+- 想讓別人感受到什麼？
+
+*範例：「代表我比較內向，但很喜歡自己的小世界」*
+
+---
+
+**綜合範例**
+
+「畫的整體偏柔和的暖色調，是在下午有夕陽的時候，一個人坐在海邊，讓我感到很安心，整體插畫風格」`,
 }
 
 function parseStoredJson(raw: string | null | undefined): unknown {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Markdown from 'react-markdown'
 import {
   DIMENSION_LABELS,
   type TipiScoring, type TagCategory, type SurveyDescriptions,
@@ -16,6 +17,7 @@ interface SettingsTabProps {
 export default function SettingsTab({ settings, setSettings, onSave }: SettingsTabProps) {
   const [saving, setSaving] = useState(false)
   const [newTag, setNewTag] = useState<Record<number, string>>({})
+  const [hintsPreview, setHintsPreview] = useState(false)
 
   const { maxRetries, fluxSteps, tipiQuestions, tipiScoring, panasItems, descriptions, quickTags } = settings
 
@@ -106,6 +108,32 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
             />
           </div>
         ))}
+
+        {/* artPromptHints — markdown editor with preview */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs text-gray-500">藝術作品提示區塊（Markdown）</label>
+            <button
+              type="button"
+              onClick={() => setHintsPreview(p => !p)}
+              className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:border-brand-400 hover:text-brand-700 transition-colors"
+            >
+              {hintsPreview ? '編輯' : '預覽'}
+            </button>
+          </div>
+          {hintsPreview ? (
+            <div className="border border-gray-200 rounded-lg px-3 py-2 text-xs min-h-[8rem] bg-brand-50 prose prose-xs max-w-none prose-p:my-1 prose-headings:text-gray-700 prose-headings:font-medium prose-headings:text-xs prose-headings:my-1 prose-ul:my-1 prose-li:my-0 prose-li:text-gray-500 prose-em:text-gray-400 prose-strong:text-gray-700 prose-hr:border-brand-200 prose-hr:my-3">
+              <Markdown>{descriptions.artPromptHints}</Markdown>
+            </div>
+          ) : (
+            <textarea
+              value={descriptions.artPromptHints}
+              onChange={e => setDescription('artPromptHints', e.target.value)}
+              rows={12}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-400 resize-y"
+            />
+          )}
+        </div>
       </div>
 
       {/* TIPI */}
