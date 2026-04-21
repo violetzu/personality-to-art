@@ -33,20 +33,23 @@ export async function synthesizeImagePrompt(params: {
     .join(', ')
 
   const userMessage = `
-Participant data:
-- Age: ${age}, Gender: ${gender}
+Generate ONE image generation prompt for FLUX.1 based on the following participant data.
+
+PRIMARY INPUT (must be faithfully reflected):
+- Art vision: "${selfArtPrompt}"
+- Self-description: "${selfDescription}"
+
+SECONDARY CONTEXT (use to enrich mood and atmosphere only):
 - Big Five personality (1-5): ${dimStr}
 - Current emotions (PANAS 1-5): ${panasStr}
-- Self-described art vision: "${selfArtPrompt}"
-- Self-description keywords: "${selfDescription}"
+- Age: ${age}, Gender: ${gender}
 
-Based on the above psychological profile, generate ONE image generation prompt for FLUX.1.
 Requirements:
 - Write in English using natural language sentences, not keyword lists
+- The style, subject, and composition MUST come from the art vision above — do not invent or override them
 - Put the most important visual elements FIRST (subject, style, mood)
-- Include: style, mood, colors, lighting
-- Reflect the participant's personality and emotional state
-- Do not add human figures unless the participant's art vision mentions people or characters
+- Use personality and emotion only to deepen the mood and color palette, not to replace what the participant described
+- Do not add human figures unless the art vision mentions people or characters
 - STRICTLY under 50 words, no explanations, output ONLY the prompt text
 `.trim()
 
