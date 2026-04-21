@@ -47,7 +47,7 @@ Requirements:
 - Include: style, mood, colors, lighting
 - Reflect the participant's personality and emotional state
 - Do not add human figures unless the participant's art vision mentions people or characters
-- No explanations, output ONLY the prompt text
+- STRICTLY under 50 words, no explanations, output ONLY the prompt text
 `.trim()
 
   const messages: Message[] = [
