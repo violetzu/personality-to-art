@@ -16,16 +16,22 @@ def _verify(creds: HTTPAuthorizationCredentials = Security(_bearer)) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 MODEL_ID = os.environ.get("FLUX_MODEL_ID") or "black-forest-labs/FLUX.1-dev"
-# FLUX_QUANT 設定參考（FLUX.1-dev 完整模型）：
+
+# schnell 與 dev 差異：
+#   dev     guidance_scale=3.5  max_seq=512  steps=20~28  需 HF_TOKEN
+#   schnell guidance_scale=0    max_seq=256  steps=1~4    公開模型
+IS_SCHNELL = "schnell" in MODEL_ID.lower()
+
+# FLUX_QUANT 設定參考：
 #
 # 架構          代表型號              fp16  bf16  int8  建議設定
 # -------       ----------------     ----  ----  ----  --------
-# Pascal        GTX 10xx             ✓     ✗     ✗     fp16      (VRAM 若不足加 int8)
+# Pascal        GTX 10xx             ✓     ✗     ✗     fp16
 # Turing        RTX 20xx, Quadro RTX ✓     ✗     ✓     fp16
 # Ampere        RTX 30xx, A100       ✓     ✓     ✓     bf16
 # Ada Lovelace  RTX 40xx             ✓     ✓     ✓     bf16
 #
-# VRAM 需求（FLUX.1-dev）：
+# VRAM 需求（FLUX.1-dev 完整模型）：
 #   bf16   ~32GB   全精度，Ampere+ 最佳
 #   fp16   ~32GB   全精度，Turing 適用
 #   int8   ~21GB   weights int8，activations bf16
@@ -34,8 +40,12 @@ MODEL_ID = os.environ.get("FLUX_MODEL_ID") or "black-forest-labs/FLUX.1-dev"
 #
 # FLUX_QUANT: bf16 | fp16 | int8 | fp8 | int4 | fp4 | fp16a8
 QUANT = (os.environ.get("FLUX_QUANT") or "bf16").lower()
-GUIDANCE_SCALE = float(os.environ.get("FLUX_GUIDANCE_SCALE") or "3.5")
-MAX_SEQUENCE_LENGTH = int(os.environ.get("FLUX_MAX_SEQUENCE_LENGTH") or "512")
+
+_default_guidance = "0" if IS_SCHNELL else "3.5"
+_default_seq_len  = "256" if IS_SCHNELL else "512"
+
+GUIDANCE_SCALE      = float(os.environ.get("FLUX_GUIDANCE_SCALE") or _default_guidance)
+MAX_SEQUENCE_LENGTH = int(os.environ.get("FLUX_MAX_SEQUENCE_LENGTH") or _default_seq_len)
 
 _dtype = torch.bfloat16 if QUANT in ("bf16", "int8", "fp8", "int4", "fp4") else torch.float16
 
@@ -76,11 +86,14 @@ pipe.vae.enable_slicing()
 pipe.vae.enable_tiling()
 
 
+DEFAULT_STEPS = 4 if IS_SCHNELL else 20
+
+
 class Req(BaseModel):
     prompt: str
     width: int = Field(default=1024, ge=64, le=2048, multiple_of=8)
     height: int = Field(default=1024, ge=64, le=2048, multiple_of=8)
-    steps: int = Field(default=4, ge=1, le=50)
+    steps: int = Field(default=DEFAULT_STEPS, ge=1, le=50)
 
 
 @app.get("/health")
