@@ -17,6 +17,7 @@ dev-down:
 
 setup:
 	@mkdir -p data/images data/postgres data/hf_cache
+	@chmod 777 data/images data/hf_cache
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
 		echo "已建立 .env，請編輯填入正確設定"; \
