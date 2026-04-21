@@ -42,11 +42,12 @@ Participant data:
 
 Based on the above psychological profile, generate ONE image generation prompt for FLUX.1.
 Requirements:
-- Write in English
+- Write in English using natural language sentences, not keyword lists
 - Put the most important visual elements FIRST (subject, style, mood)
 - Include: style, mood, colors, lighting
 - Reflect the participant's personality and emotional state
-- STRICTLY under 50 words, no explanations, output ONLY the prompt text
+- Do not add human figures unless the participant's art vision mentions people or characters
+- No explanations, output ONLY the prompt text
 `.trim()
 
   const messages: Message[] = [
