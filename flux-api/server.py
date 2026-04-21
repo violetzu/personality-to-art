@@ -16,13 +16,32 @@ def _verify(creds: HTTPAuthorizationCredentials = Security(_bearer)) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 MODEL_ID = os.environ.get("FLUX_MODEL_ID") or "black-forest-labs/FLUX.1-dev"
-QUANT = (os.environ.get("FLUX_QUANT") or "bf16").lower()  # "bf16" | "int8" | "int4"
+# FLUX_QUANT 設定參考（FLUX.1-dev 完整模型）：
+#
+# 架構          代表型號              fp16  bf16  int8  建議設定
+# -------       ----------------     ----  ----  ----  --------
+# Pascal        GTX 10xx             ✓     ✗     ✗     fp16      (VRAM 若不足加 int8)
+# Turing        RTX 20xx, Quadro RTX ✓     ✗     ✓     fp16
+# Ampere        RTX 30xx, A100       ✓     ✓     ✓     bf16
+# Ada Lovelace  RTX 40xx             ✓     ✓     ✓     bf16
+#
+# VRAM 需求（FLUX.1-dev）：
+#   bf16   ~32GB   全精度，Ampere+ 最佳
+#   fp16   ~32GB   全精度，Turing 適用
+#   int8   ~21GB   weights int8，activations bf16
+#   fp16a8 ~18GB   weights+activations int8，fp16 dtype，Turing+
+#   int4   ~16GB   最省，品質略降
+#
+# FLUX_QUANT: bf16 | fp16 | int8 | fp8 | int4 | fp4 | fp16a8
+QUANT = (os.environ.get("FLUX_QUANT") or "bf16").lower()
 GUIDANCE_SCALE = float(os.environ.get("FLUX_GUIDANCE_SCALE") or "3.5")
 MAX_SEQUENCE_LENGTH = int(os.environ.get("FLUX_MAX_SEQUENCE_LENGTH") or "512")
 
+_dtype = torch.bfloat16 if QUANT in ("bf16", "int8", "fp8", "int4", "fp4") else torch.float16
+
 pipe = FluxPipeline.from_pretrained(
     MODEL_ID,
-    torch_dtype=torch.bfloat16,
+    torch_dtype=_dtype,
 )
 
 if QUANT in ("int8", "fp8"):
@@ -33,12 +52,23 @@ if QUANT in ("int8", "fp8"):
     freeze(pipe.text_encoder_2)
     pipe.to("cuda")
     print("[flux] INT8 quantization (~21GB VRAM)")
+elif QUANT == "fp16a8":
+    from optimum.quanto import freeze, qint8, quantize
+    quantize(pipe.transformer, weights=qint8, activations=qint8)
+    freeze(pipe.transformer)
+    quantize(pipe.text_encoder_2, weights=qint8, activations=qint8)
+    freeze(pipe.text_encoder_2)
+    pipe.to("cuda")
+    print("[flux] fp16 + INT8 weights & activations (~18GB VRAM)")
 elif QUANT in ("int4", "fp4"):
     from optimum.quanto import freeze, qint4, quantize
     quantize(pipe.transformer, weights=qint4)
     freeze(pipe.transformer)
     pipe.to("cuda")
     print("[flux] INT4 quantization (~16GB VRAM)")
+elif QUANT == "fp16":
+    pipe.to("cuda")
+    print("[flux] float16 (~32GB VRAM)")
 else:
     pipe.to("cuda")
     print("[flux] bfloat16 (~32GB VRAM)")
