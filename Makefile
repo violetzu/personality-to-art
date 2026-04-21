@@ -37,7 +37,7 @@ db-export:
 db-restore:
 	@test -n "$(FILE)" || (echo "請指定 FILE=<路徑>，例如：make db-restore FILE=data/backup/db.dump" && exit 1)
 	@test -f "$(FILE)" || (echo "找不到檔案：$(FILE)" && exit 1)
-	docker compose exec -T postgres psql -U $${POSTGRES_USER:-eq_user} -c \
+	docker compose exec -T postgres psql -U $${POSTGRES_USER:-eq_user} -d postgres -c \
 		"DROP DATABASE IF EXISTS $${POSTGRES_DB:-eq_research}; CREATE DATABASE $${POSTGRES_DB:-eq_research};"
 	docker compose exec -T postgres pg_restore \
 		-U $${POSTGRES_USER:-eq_user} \
