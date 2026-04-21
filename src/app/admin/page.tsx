@@ -15,7 +15,7 @@ import ParticipantModal from './_components/ParticipantModal'
 
 const DEFAULT_SETTINGS: Settings = {
   maxRetries: 3,
-  fluxSteps: 28,
+  fluxSteps: 4,
   tipiQuestions: DEFAULT_TIPI_QUESTIONS,
   tipiScoring: DEFAULT_TIPI_SCORING,
   panasItems: DEFAULT_PANAS_ITEMS,
@@ -183,7 +183,7 @@ export default function AdminPage() {
             onDelete={handleDelete}
           />
         )}
-        {activeTab === 'generate' && <TestGenerateTab />}
+        {activeTab === 'generate' && <TestGenerateTab defaultSteps={settings.fluxSteps} />}
         {activeTab === 'settings' && (
           <SettingsTab settings={settings} setSettings={setSettings} onSave={saveSettings} />
         )}

@@ -35,8 +35,6 @@ IS_SCHNELL = "schnell" in MODEL_ID.lower()
 #   bf16   ~32GB   全精度，Ampere+ 最佳
 #   fp16   ~32GB   全精度，Turing 適用
 #   int8   ~21GB   weights int8，activations bf16
-#   fp16a8 ~18GB   weights+activations int8，fp16 dtype，Turing+
-#   int4   ~16GB   最省，品質略降
 #
 # FLUX_QUANT: bf16 | fp16 | int8 | fp8 | int4 | fp4 | fp16a8
 QUANT = (os.environ.get("FLUX_QUANT") or "bf16").lower()
@@ -47,7 +45,7 @@ _default_seq_len  = "256" if IS_SCHNELL else "512"
 GUIDANCE_SCALE      = float(os.environ.get("FLUX_GUIDANCE_SCALE") or _default_guidance)
 MAX_SEQUENCE_LENGTH = int(os.environ.get("FLUX_MAX_SEQUENCE_LENGTH") or _default_seq_len)
 
-_dtype = torch.bfloat16 if QUANT in ("bf16", "int8", "fp8", "int4", "fp4") else torch.float16
+_dtype = torch.bfloat16 if QUANT in ("bf16", "int8", "fp8") else torch.float16
 
 pipe = FluxPipeline.from_pretrained(
     MODEL_ID,
@@ -62,23 +60,6 @@ if QUANT in ("int8", "fp8"):
     freeze(pipe.text_encoder_2)
     pipe.to("cuda")
     print("[flux] INT8 quantization (~21GB VRAM)")
-elif QUANT == "fp16a8":
-    from optimum.quanto import freeze, qint8, quantize
-    quantize(pipe.transformer, weights=qint8, activations=qint8)
-    freeze(pipe.transformer)
-    quantize(pipe.text_encoder_2, weights=qint8, activations=qint8)
-    freeze(pipe.text_encoder_2)
-    pipe.to("cuda")
-    print("[flux] fp16 + INT8 weights & activations (~18GB VRAM)")
-elif QUANT in ("int4", "fp4"):
-    from optimum.quanto import freeze, qint4, quantize
-    quantize(pipe.transformer, weights=qint4)
-    freeze(pipe.transformer)
-    pipe.to("cuda")
-    print("[flux] INT4 quantization (~16GB VRAM)")
-elif QUANT == "fp16":
-    pipe.to("cuda")
-    print("[flux] float16 (~32GB VRAM)")
 else:
     pipe.to("cuda")
     print("[flux] bfloat16 (~32GB VRAM)")

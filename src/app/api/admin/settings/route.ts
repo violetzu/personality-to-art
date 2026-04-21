@@ -15,9 +15,11 @@ export async function GET() {
   const settings = await prisma.setting.findMany()
   const map = Object.fromEntries(settings.map(s => [s.key, s.value]))
   const config = parseSurveyConfigMap(map)
+  const isSchnell = (process.env.FLUX_MODEL_ID ?? '').toLowerCase().includes('schnell')
+  const envSteps = process.env.FLUX_STEPS ? Number(process.env.FLUX_STEPS) : (isSchnell ? 4 : 20)
   return NextResponse.json({
     maxRetries: Number(map.maxRetries ?? 3),
-    fluxSteps: Number(map.fluxSteps ?? 28),
+    fluxSteps: Number(map.fluxSteps ?? envSteps),
     ...config,
   })
 }

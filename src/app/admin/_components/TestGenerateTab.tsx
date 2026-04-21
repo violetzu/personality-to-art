@@ -12,11 +12,11 @@ async function readApiResponse(res: Response): Promise<{ error?: string; url?: s
   return text ? { error: text } : {}
 }
 
-export default function TestGenerateTab() {
+export default function TestGenerateTab({ defaultSteps }: { defaultSteps: number }) {
   const [prompt, setPrompt] = useState('')
   const [width, setWidth] = useState(1024)
   const [height, setHeight] = useState(1024)
-  const [steps, setSteps] = useState(28)
+  const [steps, setSteps] = useState(defaultSteps)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState('')
