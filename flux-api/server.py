@@ -1,8 +1,14 @@
-import base64, io, os, torch, asyncio
+import base64, io, os, torch, asyncio, logging
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from diffusers import FluxPipeline
+
+class _NoHealth(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "GET /health" not in record.getMessage()
+
+logging.getLogger("uvicorn.access").addFilter(_NoHealth())
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 lock = asyncio.Lock()

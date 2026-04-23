@@ -92,18 +92,21 @@ export async function POST(req: NextRequest) {
           select: { id: true },
         }),
       ])
+      console.log(`[participant] updated id=${updatedParticipant.id}`)
       participant = updatedParticipant
     } else {
       participant = await prisma.participant.create({
         data: participantData,
         select: { id: true },
       })
+      console.log(`[participant] created id=${participant.id}`)
     }
   } else {
     participant = await prisma.participant.create({
       data: participantData,
       select: { id: true },
     })
+    console.log(`[participant] created id=${participant.id}`)
   }
 
   await Promise.allSettled(staleImageUrls.map(imageUrl => fs.unlink(getImageFilePath(imageUrl))))

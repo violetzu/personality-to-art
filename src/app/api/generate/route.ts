@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
   if (!checkRateLimit(`generate:${ip}`, 10, 60_000)) {
+    console.warn(`[generate] rate_limited ip=${ip}`)
     return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
@@ -48,6 +49,9 @@ export async function POST(req: NextRequest) {
   if (lock.count === 0) {
     return NextResponse.json({ error: '作品仍在生成中，請稍候再試' }, { status: 409 })
   }
+
+  const t0 = Date.now()
+  console.log(`[generate] start participantId=${participantIdNum} ip=${ip}`)
 
   try {
     // Check retry limit
@@ -86,6 +90,7 @@ export async function POST(req: NextRequest) {
     ]
 
     // 1. LLM synthesizes image prompt
+    const t1 = Date.now()
     const imagePrompt = await synthesizeImagePrompt({
       age: participant.age,
       gender: participant.gender,
@@ -94,8 +99,13 @@ export async function POST(req: NextRequest) {
       selfDescription: participant.selfDescription ?? '',
     })
 
+    console.log(`[generate] llm_done participantId=${participantIdNum} duration=${Date.now() - t1}ms`)
+
     // 2. FLUX.1 generates image
+    const t2 = Date.now()
     const imageUrl = await generateImage(imagePrompt, { steps: fluxSteps })
+
+    console.log(`[generate] flux_done participantId=${participantIdNum} duration=${Date.now() - t2}ms`)
 
     // 3. Save to DB
     const prompt = await prisma.prompt.create({
@@ -106,12 +116,16 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    console.log(`[generate] done participantId=${participantIdNum} total=${Date.now() - t0}ms promptId=${prompt.id}`)
     return NextResponse.json({
       prompt: {
         ...prompt,
         imageUrl: withImageAccessToken(prompt.imageUrl, token),
       },
     })
+  } catch (e) {
+    console.error(`[generate] error participantId=${participantIdNum} total=${Date.now() - t0}ms`, e)
+    return NextResponse.json({ error: '生成失敗，請稍後再試' }, { status: 500 })
   } finally {
     await prisma.participant.updateMany({
       where: {

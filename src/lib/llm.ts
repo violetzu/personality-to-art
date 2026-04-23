@@ -84,7 +84,6 @@ Requirements:
 
   const data = await res.json()
   const content = data.choices?.[0]?.message?.content
-  console.log('[LLM] raw content:', JSON.stringify(content))
   if (!content) throw new Error('LLM returned empty response')
 
   // strip <think>...</think> reasoning blocks if present
@@ -95,6 +94,6 @@ Requirements:
     throw new Error('LLM response truncated — only thinking block received, no prompt generated')
   }
 
-  console.log('[LLM] cleaned content:', JSON.stringify(cleaned))
+  console.log('[llm] prompt:', JSON.stringify(cleaned))
   return cleaned
 }
