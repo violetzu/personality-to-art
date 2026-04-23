@@ -200,7 +200,7 @@ export default function SurveyForm({
                 </div>
               </div>
             </div>
-            {!reached.has('tipi') && (
+            {activeSection === 'basic' && (
               <>
                 <button onClick={e => { e.stopPropagation(); if (!name.trim() || !age || !gender) return setError('請完整填寫基本資料'); advanceTo('tipi') }}
                   className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition-colors">
@@ -229,7 +229,7 @@ export default function SurveyForm({
                   leftLabel="不符合" rightLabel="符合" />
               ))}
             </div>
-            {tipiDone && !reached.has('panas') && (
+            {tipiDone && activeSection === 'tipi' && (
               <button onClick={e => { e.stopPropagation(); advanceTo('panas') }}
                 className="w-full mt-6 bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition-colors">
                 下一步：情緒量表
@@ -255,7 +255,7 @@ export default function SurveyForm({
                   leftLabel="非常輕微" rightLabel="非常強烈" />
               ))}
             </div>
-            {panasDone && !reached.has('text') && (
+            {panasDone && activeSection === 'panas' && (
               <button onClick={e => { e.stopPropagation(); advanceTo('text') }}
                 className="w-full mt-6 bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition-colors">
                 下一步：自我描述
