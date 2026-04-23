@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
+import type { PanasItem } from './survey-config'
 
 export interface PromptAnalysis {
   description: string
@@ -10,20 +11,8 @@ export interface PromptAnalysis {
     stability: number
     openness: number
   }
-  panas: {
-    active: number
-    nervous: number
-    happy: number
-    anxious: number
-    energetic: number
-    upset: number
-    excited: number
-    afraid: number
-    interested: number
-    distressed: number
-    inspired: number
-    stressed: number
-  }
+  panas: Record<string, number>
+  panasKeys: string[]
   analyzedAt: string
 }
 
@@ -31,7 +20,7 @@ function isScore(v: unknown): boolean {
   return typeof v === 'number' && v >= 1 && v <= 5
 }
 
-function validateAnalysis(data: unknown): data is Omit<PromptAnalysis, 'analyzedAt'> {
+function validateAnalysis(data: unknown, panasLabels: string[]): data is Omit<PromptAnalysis, 'analyzedAt'> {
   if (!data || typeof data !== 'object') return false
   const d = data as Record<string, unknown>
   if (typeof d.description !== 'string' || !d.description) return false
@@ -42,13 +31,14 @@ function validateAnalysis(data: unknown): data is Omit<PromptAnalysis, 'analyzed
   }
   const panas = d.panas as Record<string, unknown>
   if (!panas || typeof panas !== 'object') return false
-  for (const k of ['active', 'nervous', 'happy', 'anxious', 'energetic', 'upset', 'excited', 'afraid', 'interested', 'distressed', 'inspired', 'stressed']) {
-    if (!isScore(panas[k])) return false
+  for (const label of panasLabels) {
+    if (!isScore(panas[label])) return false
   }
   return true
 }
 
-export async function analyzeImage(imageUrl: string): Promise<PromptAnalysis> {
+export async function analyzeImage(imageUrl: string, panasItems: PanasItem[]): Promise<PromptAnalysis> {
+  const panasLabels = panasItems.map(i => i.label)
   // imageUrl is like /api/images/filename.png — read file directly
   const filename = path.basename(imageUrl)
   const filePath = path.join(process.cwd(), 'data', 'images', filename)
@@ -69,10 +59,7 @@ Return ONLY this JSON structure (all numeric scores 1-5):
     "stability": <1-5>,
     "openness": <1-5>
   },
-  "panas": {
-    "active": <1-5>, "nervous": <1-5>, "happy": <1-5>, "anxious": <1-5>, "energetic": <1-5>, "upset": <1-5>,
-    "excited": <1-5>, "afraid": <1-5>, "interested": <1-5>, "distressed": <1-5>, "inspired": <1-5>, "stressed": <1-5>
-  }
+  "panas": { ${panasLabels.map(l => `"${l}": <1-5>`).join(', ')} }
 }`
 
   const abort = AbortSignal.timeout(120_000)
@@ -117,8 +104,8 @@ Return ONLY this JSON structure (all numeric scores 1-5):
   if (!jsonMatch) throw new Error(`No JSON found in response: ${content}`)
 
   const parsed = JSON.parse(jsonMatch[0])
-  if (!validateAnalysis(parsed)) {
+  if (!validateAnalysis(parsed, panasLabels)) {
     throw new Error('Vision API returned unexpected schema')
   }
-  return { ...parsed, analyzedAt: new Date().toISOString() }
+  return { ...parsed, panasKeys: panasLabels, analyzedAt: new Date().toISOString() }
 }

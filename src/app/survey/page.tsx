@@ -12,7 +12,7 @@ async function getSurveyConfig(): Promise<SurveyConfig> {
   const settings = await prisma.setting.findMany({
     where: { key: { in: ['tipiQuestions', 'tipiScoring', 'panasItems', 'quickTags', 'descriptions'] } },
   })
-  const map = Object.fromEntries(settings.map(s => [s.key, s.value]))
+  const map = Object.fromEntries(settings.map((s: { key: string; value: string }) => [s.key, s.value]))
   return parseSurveyConfigMap(map)
 }
 

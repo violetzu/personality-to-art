@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         )
       }
-      staleImageUrls = existingParticipant.prompts.map(prompt => prompt.imageUrl)
+      staleImageUrls = existingParticipant.prompts.map((prompt: { imageUrl: string }) => prompt.imageUrl)
       const [, updatedParticipant] = await prisma.$transaction([
         prisma.prompt.deleteMany({ where: { participantId: existingParticipant.id } }),
         prisma.participant.update({

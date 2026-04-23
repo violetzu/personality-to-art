@@ -1,27 +1,30 @@
 import { NextResponse } from 'next/server'
+import { type Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { hasAdmin } from '@/lib/auth'
+import { parseSurveyConfigMap } from '@/lib/survey-config'
+
+type ParticipantWithPrompts = Prisma.ParticipantGetPayload<{ include: { prompts: true } }>
 
 export async function GET() {
   if (!await hasAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const participants = await prisma.participant.findMany({
-    include: { prompts: true },
-    orderBy: { createdAt: 'desc' },
-  })
+  const participants = await prisma.participant.findMany({ include: { prompts: true }, orderBy: { createdAt: 'desc' } })
+  const settings = await prisma.setting.findMany()
+
+  const { panasItems } = parseSurveyConfigMap(Object.fromEntries(settings.map((s: { key: string; value: string }) => [s.key, s.value])))
 
   const headers = [
     'ID','姓名','年齡','性別',
     'TIPI_1','TIPI_2','TIPI_3','TIPI_4','TIPI_5',
     'TIPI_6','TIPI_7','TIPI_8','TIPI_9','TIPI_10',
-    'PANAS_Active','PANAS_Nervous','PANAS_Happy','PANAS_Anxious','PANAS_Energetic','PANAS_Upset',
-    'PANAS_Excited','PANAS_Afraid','PANAS_Interested','PANAS_Distressed','PANAS_Inspired','PANAS_Stressed',
+    ...panasItems.map(item => `PANAS_${item.label}`),
     '自我意象藝術作品','自我描述',
     '外向性','親和性','盡責性','情緒穩定性','開放性',
     '實驗提示詞','圖片路徑','新增時間',
   ]
 
-  const rows = participants.flatMap(p => {
+  const rows = participants.flatMap((p: ParticipantWithPrompts) => {
     const base = [
       p.id, p.name, p.age, p.gender,
       p.tipi1, p.tipi2, p.tipi3, p.tipi4, p.tipi5,

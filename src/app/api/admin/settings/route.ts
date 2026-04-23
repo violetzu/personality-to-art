@@ -13,7 +13,7 @@ import {
 export async function GET() {
   if (!await hasAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const settings = await prisma.setting.findMany()
-  const map = Object.fromEntries(settings.map(s => [s.key, s.value]))
+  const map = Object.fromEntries(settings.map((s: { key: string; value: string }) => [s.key, s.value]))
   const config = parseSurveyConfigMap(map)
   const isSchnell = (process.env.FLUX_MODEL_ID ?? '').toLowerCase().includes('schnell')
   const envSteps = process.env.FLUX_STEPS ? Number(process.env.FLUX_STEPS) : (isSchnell ? 4 : 20)
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
   if (body.panasItems !== undefined) {
     const value = validatePanasItemsInput(body.panasItems)
     if (!value) {
-      return NextResponse.json({ error: 'PANAS 題目需為 12 題' }, { status: 400 })
+      return NextResponse.json({ error: 'PANAS 題目需為 12 題且標籤不可重複' }, { status: 400 })
     }
     upserts.push({ key: 'panasItems', value: JSON.stringify(value) })
   }

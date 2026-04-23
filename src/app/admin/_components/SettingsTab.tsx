@@ -180,7 +180,6 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
           {panasItems.map((item, i) => (
             <div key={i} className="flex gap-2 items-center">
               <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
-              <span className="text-xs text-gray-400 font-mono w-20 shrink-0">{item.key}</span>
               <input value={item.label} onChange={e => setPanasLabel(i, e.target.value)}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
             </div>

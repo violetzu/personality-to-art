@@ -5,7 +5,6 @@ export interface TipiScoring {
 
 export interface PanasItem {
   label: string
-  key: string
 }
 
 export interface TagCategory {
@@ -76,18 +75,18 @@ export const DEFAULT_TIPI_SCORING: TipiScoring[] = [
 ]
 
 export const DEFAULT_PANAS_ITEMS: PanasItem[] = [
-  { label: '積極的', key: 'active' },
-  { label: '緊張的', key: 'nervous' },
-  { label: '愉快的', key: 'happy' },
-  { label: '焦慮的', key: 'anxious' },
-  { label: '有活力的', key: 'energetic' },
-  { label: '心煩意亂的', key: 'upset' },
-  { label: '興奮的', key: 'excited' },
-  { label: '害怕的', key: 'afraid' },
-  { label: '對事物感到有興趣', key: 'interested' },
-  { label: '沮喪的', key: 'distressed' },
-  { label: '受到鼓舞的', key: 'inspired' },
-  { label: '有壓力的', key: 'stressed' },
+  { label: '積極的' },
+  { label: '緊張的' },
+  { label: '愉快的' },
+  { label: '焦慮的' },
+  { label: '有活力的' },
+  { label: '心煩意亂的' },
+  { label: '興奮的' },
+  { label: '敏感的' },
+  { label: '對事物感到有興趣' },
+  { label: '沮喪的' },
+  { label: '受到鼓舞的' },
+  { label: '有壓力的' },
 ]
 
 export const DEFAULT_QUICK_TAGS: TagCategory[] = [
@@ -181,14 +180,16 @@ function normalizeTipiScoring(value: unknown): TipiScoring[] | null {
 
 function normalizePanasItems(value: unknown): PanasItem[] | null {
   if (!Array.isArray(value) || value.length !== DEFAULT_PANAS_ITEMS.length) return null
-  const normalized = value.map((item, index) => {
+  const normalized = value.map(item => {
     if (!item || typeof item !== 'object') return null
     const label = 'label' in item && typeof item.label === 'string' ? item.label.trim() : ''
-    const key = 'key' in item && typeof item.key === 'string' ? item.key : ''
-    if (!label || key !== DEFAULT_PANAS_ITEMS[index].key) return null
-    return { label, key }
+    if (!label) return null
+    return { label }
   })
-  return normalized.every(Boolean) ? normalized as PanasItem[] : null
+  if (!normalized.every(Boolean)) return null
+  const labels = normalized.map(i => i!.label)
+  if (new Set(labels).size !== labels.length) return null
+  return normalized as PanasItem[]
 }
 
 function normalizeQuickTags(value: unknown): TagCategory[] | null {

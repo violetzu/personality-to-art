@@ -31,6 +31,7 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
         analyzedAt: string
         bigFive: Record<string, number>
         panas: Record<string, number>
+        panasKeys?: string[]
       }
     } catch {
       return null
@@ -49,12 +50,12 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
     }
   }
 
-  const panasActual: Record<string, number> = {
-    active: detail.panasActive, nervous: detail.panasNervous, happy: detail.panasHappy,
-    anxious: detail.panasAnxious, energetic: detail.panasEnergetic, upset: detail.panasUpset,
-    excited: detail.panasExcited, afraid: detail.panasAfraid, interested: detail.panasInterested,
-    distressed: detail.panasDistressed, inspired: detail.panasInspired, stressed: detail.panasStressed,
-  }
+  const panasActual: number[] = [
+    detail.panasActive, detail.panasNervous, detail.panasHappy,
+    detail.panasAnxious, detail.panasEnergetic, detail.panasUpset,
+    detail.panasExcited, detail.panasAfraid, detail.panasInterested,
+    detail.panasDistressed, detail.panasInspired, detail.panasStressed,
+  ]
 
   return (
     <div
@@ -114,10 +115,10 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">PANAS 情緒</h3>
               <div className="space-y-1">
-                {panasItems.map(item => (
-                  <div key={item.key} className="flex justify-between text-xs">
+                {panasItems.map((item, i) => (
+                  <div key={i} className="flex justify-between text-xs">
                     <span className="text-gray-500">{item.label}</span>
-                    <span className="font-medium text-gray-700">{panasActual[item.key]}</span>
+                    <span className="font-medium text-gray-700">{panasActual[i]}</span>
                   </div>
                 ))}
               </div>
@@ -187,12 +188,12 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
                               <div>
                                 <p className="text-xs font-medium text-gray-500 mb-1">PANAS 比對（推斷 vs 實際）</p>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                                  {panasItems.map(item => (
-                                    <div key={item.key} className="flex items-center gap-1 text-xs">
+                                  {panasItems.map((item, i) => (
+                                    <div key={i} className="flex items-center gap-1 text-xs">
                                       <span className="w-20 text-gray-500 shrink-0">{item.label}</span>
-                                      <span className="text-brand-600 font-medium">{analysis.panas[item.key]?.toFixed(1) ?? '—'}</span>
+                                      <span className="text-brand-600 font-medium">{(analysis.panasKeys ? analysis.panas[analysis.panasKeys[i]] : undefined)?.toFixed(1) ?? '—'}</span>
                                       <span className="text-gray-300 text-xs">vs</span>
-                                      <span className="text-gray-500 font-medium">{panasActual[item.key]}</span>
+                                      <span className="text-gray-500 font-medium">{panasActual[i]}</span>
                                     </div>
                                   ))}
                                 </div>

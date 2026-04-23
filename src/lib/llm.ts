@@ -25,7 +25,7 @@ export async function synthesizeImagePrompt(params: {
 
   const panasStr = panas.map((v, i) => {
     const item = panasItems[i]
-    const label = item?.label?.trim() || item?.key || `Item ${i + 1}`
+    const label = item?.label?.trim() || `Item ${i + 1}`
     return `${label}: ${v}`
   }).join(', ')
   const dimStr = Object.entries(dimensions)
