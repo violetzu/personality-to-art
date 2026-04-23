@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   DEFAULT_TIPI_QUESTIONS, DEFAULT_TIPI_SCORING, DEFAULT_PANAS_ITEMS,
-  DEFAULT_QUICK_TAGS, DEFAULT_DESCRIPTIONS,
+  DEFAULT_QUICK_TAGS, DEFAULT_DESCRIPTIONS, DEFAULT_HOME_INTRO,
 } from '@/lib/survey-config'
 import type { Participant, DetailParticipant, Stats, Settings } from './_types'
 import LoginScreen from './_components/LoginScreen'
@@ -16,6 +16,7 @@ import ParticipantModal from './_components/ParticipantModal'
 const DEFAULT_SETTINGS: Settings = {
   maxRetries: 3,
   fluxSteps: 4,
+  homeIntro: DEFAULT_HOME_INTRO,
   tipiQuestions: DEFAULT_TIPI_QUESTIONS,
   tipiScoring: DEFAULT_TIPI_SCORING,
   panasItems: DEFAULT_PANAS_ITEMS,
@@ -75,6 +76,7 @@ export default function AdminPage() {
       setSettings({
         maxRetries: setData.maxRetries ?? 3,
         fluxSteps: setData.fluxSteps ?? 28,
+        homeIntro: setData.homeIntro ?? DEFAULT_HOME_INTRO,
         tipiQuestions: setData.tipiQuestions ?? DEFAULT_TIPI_QUESTIONS,
         tipiScoring: setData.tipiScoring ?? DEFAULT_TIPI_SCORING,
         panasItems: setData.panasItems ?? DEFAULT_PANAS_ITEMS,

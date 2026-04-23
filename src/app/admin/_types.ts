@@ -37,6 +37,7 @@ export interface Stats {
 export interface Settings {
   maxRetries: number
   fluxSteps: number
+  homeIntro: string
   tipiQuestions: string[]
   tipiScoring: TipiScoring[]
   panasItems: PanasItem[]

@@ -20,7 +20,7 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
   const [hintsPreview, setHintsPreview] = useState(false)
   const [introPreview, setIntroPreview] = useState(false)
 
-  const { maxRetries, fluxSteps, tipiQuestions, tipiScoring, panasItems, descriptions, quickTags } = settings
+  const { maxRetries, fluxSteps, homeIntro, tipiQuestions, tipiScoring, panasItems, descriptions, quickTags } = settings
 
   async function handleSave() {
     setSaving(true)
@@ -102,12 +102,12 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
           </div>
           {introPreview ? (
             <div className="border border-gray-200 rounded-lg px-3 py-2 text-sm min-h-[8rem] prose prose-sm max-w-none prose-p:my-1.5 prose-headings:text-gray-800 prose-strong:text-gray-700 prose-hr:border-gray-200 prose-hr:my-3 text-gray-600">
-              <Markdown>{descriptions.homeIntro}</Markdown>
+              <Markdown>{homeIntro}</Markdown>
             </div>
           ) : (
             <textarea
-              value={descriptions.homeIntro}
-              onChange={e => setDescription('homeIntro', e.target.value)}
+              value={homeIntro}
+              onChange={e => setSettings(p => ({ ...p, homeIntro: e.target.value }))}
               rows={10}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-400 resize-y"
             />

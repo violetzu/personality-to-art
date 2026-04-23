@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Markdown from 'react-markdown'
 import { prisma } from '@/lib/db'
 import { clearParticipantCookie, getResumeParticipantId } from '@/lib/auth'
-import { parseSurveyConfigMap } from '@/lib/survey-config'
+import { parseHomeIntro } from '@/lib/survey-config'
 
 interface ResumeState {
   title: string
@@ -36,10 +36,16 @@ async function getResumeState(): Promise<ResumeState | 'stale' | null> {
 
 async function getHomeIntro(): Promise<string> {
   const settings = await prisma.setting.findMany({
-    where: { key: 'descriptions' },
+    where: { key: { in: ['homeIntro', 'descriptions'] } },
   })
   const map = Object.fromEntries(settings.map((s: { key: string; value: string }) => [s.key, s.value]))
-  return parseSurveyConfigMap(map).descriptions.homeIntro
+  if (map.homeIntro) return parseHomeIntro(map.homeIntro)
+  // legacy fallback: homeIntro was previously stored inside descriptions JSON
+  try {
+    const desc = map.descriptions ? JSON.parse(map.descriptions) : null
+    if (typeof desc?.homeIntro === 'string' && desc.homeIntro.trim()) return desc.homeIntro.trim()
+  } catch { /* ignore */ }
+  return parseHomeIntro(undefined)
 }
 
 export default async function HomePage() {

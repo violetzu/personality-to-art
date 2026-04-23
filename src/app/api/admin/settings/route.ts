@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { hasAdmin } from '@/lib/auth'
 import {
   parseSurveyConfigMap,
+  parseHomeIntro,
   validateDescriptionsInput,
   validatePanasItemsInput,
   validateQuickTagsInput,
@@ -17,9 +18,19 @@ export async function GET() {
   const config = parseSurveyConfigMap(map)
   const isSchnell = (process.env.FLUX_MODEL_ID ?? '').toLowerCase().includes('schnell')
   const envSteps = process.env.FLUX_STEPS ? Number(process.env.FLUX_STEPS) : (isSchnell ? 4 : 20)
+  // legacy fallback: homeIntro was previously stored inside descriptions JSON
+  let homeIntroRaw = map.homeIntro
+  if (!homeIntroRaw) {
+    try {
+      const desc = map.descriptions ? JSON.parse(map.descriptions) : null
+      if (typeof desc?.homeIntro === 'string' && desc.homeIntro.trim()) homeIntroRaw = desc.homeIntro.trim()
+    } catch { /* ignore */ }
+  }
+
   return NextResponse.json({
     maxRetries: Number(map.maxRetries ?? 3),
     fluxSteps: Number(map.fluxSteps ?? envSteps),
+    homeIntro: parseHomeIntro(homeIntroRaw),
     ...config,
   })
 }
@@ -76,6 +87,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '說明文字格式錯誤' }, { status: 400 })
     }
     upserts.push({ key: 'descriptions', value: JSON.stringify(value) })
+  }
+
+  if (body.homeIntro !== undefined) {
+    const value = typeof body.homeIntro === 'string' ? body.homeIntro.trim() : null
+    if (!value) {
+      return NextResponse.json({ error: '首頁說明不可為空' }, { status: 400 })
+    }
+    upserts.push({ key: 'homeIntro', value })
   }
 
   if (body.quickTags !== undefined) {

@@ -20,7 +20,6 @@ export interface SurveyDescriptions {
   artPromptInstruction: string
   selfDescInstruction: string
   artPromptHints: string
-  homeIntro: string
 }
 
 export interface SurveyConfig {
@@ -43,7 +42,6 @@ const DESCRIPTION_KEYS = [
   'artPromptInstruction',
   'selfDescInstruction',
   'artPromptHints',
-  'homeIntro',
 ] as const
 
 export const DIMENSION_LABELS: Record<string, string> = {
@@ -109,18 +107,6 @@ export const DEFAULT_DESCRIPTIONS: SurveyDescriptions = {
   textSubtitle: '最後兩個問題，完成後即可生成專屬藝術作品',
   artPromptInstruction: '請用文字描述一個「最能代表你自己的作品」（不限形式，例如圖片、場景、插畫、風格等）。',
   selfDescInstruction: '請用三～五個詞描述自己，可點選快速標籤或自行輸入',
-  homeIntro: `親愛的受試者您好：
-
-感謝您參與本研究。本問卷旨在了解使用者與 AI 互動時所撰寫之提示詞，是否能反映個人特質與情緒狀態。
-
-填答內容包含簡短人格與情緒題目，以及一段「最能代表您的作品」之描述。提示詞請盡量具體完整，以利後續分析。所有資料皆採匿名處理，僅供學術研究使用。
-
-本問卷無標準答案，請依直覺與真實想法填答。感謝您的協助！
-
----
-
-xx大學 xxxx學系 xx班
-研究生：xxx 敬上`,
   artPromptHints: `你可以從以下幾個方向來思考：
 
 **1. 色彩（Color）**
@@ -161,6 +147,25 @@ xx大學 xxxx學系 xx班
 **綜合範例**
 
 「畫的整體偏柔和的暖色調，是在下午有夕陽的時候，一個人坐在海邊，讓我感到很安心，整體插畫風格」`,
+}
+
+export const DEFAULT_HOME_INTRO = `親愛的受試者您好：
+
+感謝您參與本研究。本問卷旨在了解使用者與 AI 互動時所撰寫之提示詞，是否能反映個人特質與情緒狀態。
+
+填答內容包含簡短人格與情緒題目，以及一段「最能代表您的作品」之描述。提示詞請盡量具體完整，以利後續分析。所有資料皆採匿名處理，僅供學術研究使用。
+
+本問卷無標準答案，請依直覺與真實想法填答。感謝您的協助！
+
+---
+
+xx大學 xxxx學系 xx班
+研究生：xxx 敬上`
+
+export function parseHomeIntro(raw: string | null | undefined): string {
+  if (!raw) return DEFAULT_HOME_INTRO
+  const trimmed = raw.trim()
+  return trimmed || DEFAULT_HOME_INTRO
 }
 
 function parseStoredJson(raw: string | null | undefined): unknown {
