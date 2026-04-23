@@ -48,7 +48,7 @@ db-restore:
 	@echo "資料庫還原完成"
 
 logs:
-	docker compose logs -f nextjs flux
+	docker compose logs -f -t nextjs flux
 
 ps:
 	docker compose ps
