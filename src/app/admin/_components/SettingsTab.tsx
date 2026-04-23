@@ -174,7 +174,7 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div>
           <h3 className="font-semibold text-gray-800">情緒量表（PANAS）題目</h3>
-          <p className="text-xs text-gray-400 mt-1">Key 對應資料庫欄位，不可修改</p>
+          <p className="text-xs text-gray-400 mt-1">修改標籤後，舊有畫作分析需重新分析才能對應新標籤</p>
         </div>
         <div className="space-y-2">
           {panasItems.map((item, i) => (
