@@ -18,6 +18,7 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
   const [saving, setSaving] = useState(false)
   const [newTag, setNewTag] = useState<Record<number, string>>({})
   const [hintsPreview, setHintsPreview] = useState(false)
+  const [introPreview, setIntroPreview] = useState(false)
 
   const { maxRetries, fluxSteps, tipiQuestions, tipiScoring, panasItems, descriptions, quickTags } = settings
 
@@ -82,6 +83,35 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
           <input type="number" min={1} max={50} value={fluxSteps}
             onChange={e => setSettings(p => ({ ...p, fluxSteps: Number(e.target.value) }))}
             className="w-40 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+        </div>
+      </div>
+
+      {/* 首頁說明 */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <h3 className="font-semibold text-gray-800">首頁研究說明（Markdown）</h3>
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs text-gray-500">顯示於首頁白框內，按鈕上方</label>
+            <button
+              type="button"
+              onClick={() => setIntroPreview(p => !p)}
+              className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:border-brand-400 hover:text-brand-700 transition-colors"
+            >
+              {introPreview ? '編輯' : '預覽'}
+            </button>
+          </div>
+          {introPreview ? (
+            <div className="border border-gray-200 rounded-lg px-3 py-2 text-sm min-h-[8rem] prose prose-sm max-w-none prose-p:my-1.5 prose-headings:text-gray-800 prose-strong:text-gray-700 prose-hr:border-gray-200 prose-hr:my-3 text-gray-600">
+              <Markdown>{descriptions.homeIntro}</Markdown>
+            </div>
+          ) : (
+            <textarea
+              value={descriptions.homeIntro}
+              onChange={e => setDescription('homeIntro', e.target.value)}
+              rows={10}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-400 resize-y"
+            />
+          )}
         </div>
       </div>
 

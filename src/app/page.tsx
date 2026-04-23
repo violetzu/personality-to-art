@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import Markdown from 'react-markdown'
 import { prisma } from '@/lib/db'
-import {
-  clearParticipantCookie,
-  getResumeParticipantId,
-} from '@/lib/auth'
+import { clearParticipantCookie, getResumeParticipantId } from '@/lib/auth'
+import { parseSurveyConfigMap } from '@/lib/survey-config'
 
 interface ResumeState {
   title: string
@@ -35,8 +34,16 @@ async function getResumeState(): Promise<ResumeState | 'stale' | null> {
   }
 }
 
+async function getHomeIntro(): Promise<string> {
+  const settings = await prisma.setting.findMany({
+    where: { key: 'descriptions' },
+  })
+  const map = Object.fromEntries(settings.map((s: { key: string; value: string }) => [s.key, s.value]))
+  return parseSurveyConfigMap(map).descriptions.homeIntro
+}
+
 export default async function HomePage() {
-  const resumeState = await getResumeState()
+  const [resumeState, homeIntro] = await Promise.all([getResumeState(), getHomeIntro()])
 
   async function startNewSurveyAction() {
     'use server'
@@ -53,7 +60,11 @@ export default async function HomePage() {
           <p className="text-gray-500 mt-2 text-sm">本平台僅供研究參與者使用</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
+          <div className="prose prose-sm max-w-none text-gray-600 prose-p:my-1.5 prose-headings:text-gray-800 prose-strong:text-gray-700 prose-hr:border-gray-200 prose-hr:my-3">
+            <Markdown>{homeIntro}</Markdown>
+          </div>
+          <hr className="border-gray-100" />
           {resumeState && (
             <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-4 space-y-4">
               <div>
