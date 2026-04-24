@@ -1,3 +1,7 @@
+// WARNING: in-memory only — resets on process restart and is not shared across
+// multiple processes or containers. For multi-instance deployments, replace both
+// Maps with a shared store (e.g. Redis) to maintain rate-limit guarantees.
+
 interface RateLimitEntry {
   count: number
   resetAt: number

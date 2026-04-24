@@ -1,8 +1,9 @@
 import fs from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getResumeParticipantId, issueParticipantToken, setParticipantCookie } from '@/lib/auth'
+import { getResumeParticipantId, setParticipantAccessCookie, setParticipantCookie } from '@/lib/auth'
 import { checkOrigin } from '@/lib/origin'
+import { checkRateLimit } from '@/lib/rate-limit'
 import {
   computeDimensions,
   parseTipiScoring,
@@ -14,6 +15,11 @@ import { getImageFilePath } from '@/lib/image-storage'
 export async function POST(req: NextRequest) {
   const blocked = checkOrigin(req)
   if (blocked) return blocked
+
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
+  if (!checkRateLimit(`participant:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
+  }
 
   const body = await req.json()
   const { name, age, gender, tipi, panas, selfArtPrompt, selfDescription } = body
@@ -112,5 +118,6 @@ export async function POST(req: NextRequest) {
   await Promise.allSettled(staleImageUrls.map(imageUrl => fs.unlink(getImageFilePath(imageUrl))))
 
   await setParticipantCookie(participant.id)
-  return NextResponse.json({ id: participant.id, accessToken: issueParticipantToken(participant.id) })
+  await setParticipantAccessCookie(participant.id)
+  return NextResponse.json({ id: participant.id })
 }

@@ -13,14 +13,13 @@ export async function GET(
   const safe = filename
   const filePath = getImageFilePath(safe)
   const imageUrl = `/api/images/${safe}`
-  const token = req.nextUrl.searchParams.get('token')
 
   if (!await hasAdmin()) {
     const prompt = await prisma.prompt.findFirst({
       where: { imageUrl },
       select: { participantId: true },
     })
-    if (!prompt || !hasParticipantAccess(token, prompt.participantId)) {
+    if (!prompt || !await hasParticipantAccess(prompt.participantId)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
   }

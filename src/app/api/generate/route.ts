@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { synthesizeImagePrompt } from '@/lib/llm'
 import { generateImage } from '@/lib/flux'
-import { hasParticipantAccess, withImageAccessToken } from '@/lib/auth'
+import { hasParticipantAccess } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { checkOrigin } from '@/lib/origin'
 import { parsePanasItems } from '@/lib/survey-config'
@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
   }
 
-  const { participantId, token } = await req.json()
+  const { participantId } = await req.json()
   if (!participantId) return NextResponse.json({ error: 'Missing participantId' }, { status: 400 })
   const participantIdNum = Number(participantId)
   if (!Number.isInteger(participantIdNum) || participantIdNum <= 0) {
     return NextResponse.json({ error: 'Invalid participantId' }, { status: 400 })
   }
-  if (!hasParticipantAccess(token, participantIdNum)) {
+  if (!await hasParticipantAccess(participantIdNum)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -117,12 +117,7 @@ export async function POST(req: NextRequest) {
     })
 
     console.log(`[generate] done participantId=${participantIdNum} total=${Date.now() - t0}ms promptId=${prompt.id}`)
-    return NextResponse.json({
-      prompt: {
-        ...prompt,
-        imageUrl: withImageAccessToken(prompt.imageUrl, token),
-      },
-    })
+    return NextResponse.json({ prompt })
   } catch (e) {
     console.error(`[generate] error participantId=${participantIdNum} total=${Date.now() - t0}ms`, e)
     return NextResponse.json({ error: '生成失敗，請稍後再試' }, { status: 500 })

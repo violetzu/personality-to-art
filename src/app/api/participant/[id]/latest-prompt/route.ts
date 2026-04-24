@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { hasParticipantAccess, withImageAccessToken } from '@/lib/auth'
+import { hasParticipantAccess } from '@/lib/auth'
 import { imageExists } from '@/lib/image-storage'
 
 export async function GET(
@@ -12,11 +12,9 @@ export async function GET(
   if (!Number.isInteger(participantId) || participantId <= 0) {
     return NextResponse.json({ error: '無效的參與者 ID' }, { status: 400 })
   }
-  const token = req.nextUrl.searchParams.get('token')
-  if (!hasParticipantAccess(token, participantId)) {
+  if (!await hasParticipantAccess(participantId)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const accessToken = token ?? ''
 
   const [prompts, setting, count] = await Promise.all([
     prisma.prompt.findMany({
@@ -50,10 +48,7 @@ export async function GET(
   }
 
   return NextResponse.json({
-    prompt: {
-      ...prompt,
-      imageUrl: withImageAccessToken(prompt.imageUrl, accessToken),
-    },
+    prompt,
     maxRetries,
     retriesUsed: Math.max(0, count - 1),
   })

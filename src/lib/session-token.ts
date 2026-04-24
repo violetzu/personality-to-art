@@ -98,4 +98,4 @@ export function getParticipantIdFromResumeToken(token: string | undefined): numb
   return payload?.type === 'participant_resume' ? payload.participantId : null
 }
 
-export { ADMIN_SESSION_MAX_AGE, PARTICIPANT_RESUME_MAX_AGE }
+export { ADMIN_SESSION_MAX_AGE, PARTICIPANT_RESUME_MAX_AGE, PARTICIPANT_TOKEN_MAX_AGE }

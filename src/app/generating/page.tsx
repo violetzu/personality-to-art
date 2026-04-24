@@ -17,8 +17,6 @@ function GeneratingContent() {
   const router = useRouter()
   const params = useSearchParams()
   const id = params.get('id')
-  const token = params.get('token')
-  const accessToken = token ?? ''
   const [msgIndex, setMsgIndex] = useState(0)
   const [error, setError] = useState('')
   const called = useRef(false)
@@ -31,23 +29,23 @@ function GeneratingContent() {
   }, [])
 
   useEffect(() => {
-    if (!id || !accessToken || called.current) return
+    if (!id || called.current) return
     called.current = true
 
     fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ participantId: Number(id), token: accessToken }),
+      body: JSON.stringify({ participantId: Number(id) }),
     })
       .then(r => r.json())
       .then(data => {
         if (data.error) throw new Error(data.error)
-        router.replace(`/result?id=${id}&token=${encodeURIComponent(accessToken)}`)
+        router.replace(`/result?id=${id}`)
       })
       .catch(e => setError(e.message ?? '生成失敗'))
-  }, [accessToken, id, router])
+  }, [id, router])
 
-  if (!id || !accessToken) {
+  if (!id) {
     router.replace('/')
     return null
   }

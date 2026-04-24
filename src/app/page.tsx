@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import Markdown from 'react-markdown'
 import { prisma } from '@/lib/db'
-import { clearParticipantCookie, getResumeParticipantId } from '@/lib/auth'
+import { clearParticipantAccessCookie, clearParticipantCookie, getResumeParticipantId } from '@/lib/auth'
 import { parseHomeIntro } from '@/lib/survey-config'
 
 interface ResumeState {
@@ -54,6 +54,7 @@ export default async function HomePage() {
   async function startNewSurveyAction() {
     'use server'
     await clearParticipantCookie()
+    await clearParticipantAccessCookie()
     redirect('/survey')
   }
 

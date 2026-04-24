@@ -137,7 +137,7 @@ export default function SurveyForm({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? '儲存失敗')
-      router.push(`/generating?id=${data.id}&token=${encodeURIComponent(data.accessToken)}`)
+      router.push(`/generating?id=${data.id}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '發生錯誤')
       setSubmitting(false)

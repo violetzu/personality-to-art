@@ -8,10 +8,12 @@ import {
   issueParticipantSessionToken,
   issueParticipantResumeToken,
   PARTICIPANT_RESUME_MAX_AGE,
+  PARTICIPANT_TOKEN_MAX_AGE,
 } from './session-token'
 
 const ADMIN_COOKIE = 'eq_admin'
 const PARTICIPANT_COOKIE = 'eq_participant'
+const PARTICIPANT_ACCESS_COOKIE = 'eq_access'
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -51,25 +53,35 @@ export async function clearParticipantCookie() {
   store.delete(PARTICIPANT_COOKIE)
 }
 
+export async function clearParticipantAccessCookie() {
+  const store = await cookies()
+  store.delete(PARTICIPANT_ACCESS_COOKIE)
+}
+
+export async function setParticipantAccessCookie(participantId: number) {
+  const store = await cookies()
+  const token = issueParticipantSessionToken(participantId)
+  store.set(PARTICIPANT_ACCESS_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: PARTICIPANT_TOKEN_MAX_AGE,
+  })
+}
+
 export async function hasAdmin(): Promise<boolean> {
   const store = await cookies()
   return isAdminToken(store.get(ADMIN_COOKIE)?.value)
 }
 
-export function issueParticipantToken(participantId: number): string {
-  return issueParticipantSessionToken(participantId)
-}
-
-export function hasParticipantAccess(token: string | null | undefined, participantId: number): boolean {
+export async function hasParticipantAccess(participantId: number): Promise<boolean> {
+  const store = await cookies()
+  const token = store.get(PARTICIPANT_ACCESS_COOKIE)?.value
   return hasParticipantTokenAccess(token, participantId)
 }
 
 export async function getResumeParticipantId(): Promise<number | null> {
   const store = await cookies()
   return getParticipantIdFromResumeToken(store.get(PARTICIPANT_COOKIE)?.value)
-}
-
-export function withImageAccessToken(imageUrl: string, token: string): string {
-  const separator = imageUrl.includes('?') ? '&' : '?'
-  return `${imageUrl}${separator}token=${encodeURIComponent(token)}`
 }

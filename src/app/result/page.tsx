@@ -20,8 +20,6 @@ function ResultContent() {
   const router = useRouter()
   const params = useSearchParams()
   const id = params.get('id')
-  const token = params.get('token')
-  const accessToken = token ?? ''
   const [prompt, setPrompt] = useState<PromptRecord | null>(null)
   const [maxRetries, setMaxRetries] = useState(3)
   const [retriesUsed, setRetriesUsed] = useState(0)
@@ -32,8 +30,8 @@ function ResultContent() {
   const [regeneratingMessageIndex, setRegeneratingMessageIndex] = useState(0)
 
   useEffect(() => {
-    if (!id || !accessToken) return
-    fetch(`/api/participant/${id}/latest-prompt?token=${encodeURIComponent(accessToken)}`)
+    if (!id) return
+    fetch(`/api/participant/${id}/latest-prompt`)
       .then(r => r.json())
       .then(data => {
         if (data.error && !data.imageMissing) throw new Error(data.error)
@@ -44,7 +42,7 @@ function ResultContent() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
-  }, [accessToken, id])
+  }, [id])
 
   useEffect(() => {
     if (!regenerating) {
@@ -70,7 +68,7 @@ function ResultContent() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participantId: Number(id), token: accessToken }),
+        body: JSON.stringify({ participantId: Number(id) }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -83,7 +81,7 @@ function ResultContent() {
     }
   }
 
-  if (!id || !accessToken) { router.replace('/'); return null }
+  if (!id) { router.replace('/'); return null }
 
   const retriesLeft = maxRetries - retriesUsed
 
