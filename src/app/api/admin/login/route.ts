@@ -12,7 +12,7 @@ function checkPassword(input: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
+  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
   const { allowed, remaining } = checkLoginAttempt(ip)
   if (!allowed) {
     return NextResponse.json({ ok: false, error: `帳號已鎖定，請 ${remaining} 秒後再試` }, { status: 429 })

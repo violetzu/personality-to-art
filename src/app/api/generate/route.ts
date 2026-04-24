@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const blocked = checkOrigin(req)
   if (blocked) return blocked
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
+  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? req.headers.get('x-real-ip') ?? 'unknown'
   if (!checkRateLimit(`generate:${ip}`, 10, 60_000)) {
     console.warn(`[generate] rate_limited ip=${ip}`)
     return NextResponse.json({ error: '請求過於頻繁，請稍後再試' }, { status: 429 })
