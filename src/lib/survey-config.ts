@@ -5,6 +5,7 @@ export interface TipiScoring {
 
 export interface PanasItem {
   label: string
+  valence: 'positive' | 'negative'
 }
 
 export interface TagCategory {
@@ -75,18 +76,18 @@ export const DEFAULT_TIPI_SCORING: TipiScoring[] = [
 ]
 
 export const DEFAULT_PANAS_ITEMS: PanasItem[] = [
-  { label: '積極的' },
-  { label: '緊張的' },
-  { label: '愉快的' },
-  { label: '焦慮的' },
-  { label: '有活力的' },
-  { label: '心煩意亂的' },
-  { label: '興奮的' },
-  { label: '敏感的' },
-  { label: '對事物感到有興趣' },
-  { label: '沮喪的' },
-  { label: '受到鼓舞的' },
-  { label: '有壓力的' },
+  { label: '積極的', valence: 'positive' },
+  { label: '緊張的', valence: 'negative' },
+  { label: '愉快的', valence: 'positive' },
+  { label: '焦慮的', valence: 'negative' },
+  { label: '有活力的', valence: 'positive' },
+  { label: '心煩意亂的', valence: 'negative' },
+  { label: '興奮的', valence: 'positive' },
+  { label: '敏感的', valence: 'negative' },
+  { label: '對事物感到有興趣', valence: 'positive' },
+  { label: '沮喪的', valence: 'negative' },
+  { label: '受到鼓舞的', valence: 'positive' },
+  { label: '有壓力的', valence: 'negative' },
 ]
 
 export const DEFAULT_QUICK_TAGS: TagCategory[] = [
@@ -199,11 +200,16 @@ function normalizeTipiScoring(value: unknown): TipiScoring[] | null {
 
 function normalizePanasItems(value: unknown): PanasItem[] | null {
   if (!Array.isArray(value) || value.length !== DEFAULT_PANAS_ITEMS.length) return null
-  const normalized = value.map(item => {
+  const normalized = value.map((item, i) => {
     if (!item || typeof item !== 'object') return null
     const label = 'label' in item && typeof item.label === 'string' ? item.label.trim() : ''
     if (!label) return null
-    return { label }
+    const rawValence = 'valence' in item ? item.valence : undefined
+    const valence: 'positive' | 'negative' =
+      rawValence === 'positive' || rawValence === 'negative'
+        ? rawValence
+        : (DEFAULT_PANAS_ITEMS[i]?.valence ?? (i % 2 === 0 ? 'positive' : 'negative'))
+    return { label, valence }
   })
   if (!normalized.every(Boolean)) return null
   const labels = normalized.map(i => i!.label)
@@ -290,6 +296,15 @@ export function parseSurveyConfigMap(map: Record<string, string | undefined>): S
     quickTags: parseQuickTags(map.quickTags),
     descriptions: parseDescriptions(map.descriptions),
   }
+}
+
+export function computePanas(scores: number[], items: PanasItem[]): { pa: number; na: number } {
+  let paSum = 0, paCount = 0, naSum = 0, naCount = 0
+  items.forEach((item, i) => {
+    if (item.valence === 'positive') { paSum += scores[i]; paCount++ }
+    else { naSum += scores[i]; naCount++ }
+  })
+  return { pa: paCount > 0 ? paSum / paCount : 0, na: naCount > 0 ? naSum / naCount : 0 }
 }
 
 export function computeDimensions(tipi: (number | null)[], scoring: TipiScoring[]) {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { DetailParticipant } from '../_types'
-import type { PanasItem } from '@/lib/survey-config'
+import { computePanas, type PanasItem } from '@/lib/survey-config'
 
 interface ParticipantModalProps {
   detail: DetailParticipant
@@ -56,6 +56,7 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
     detail.panasExcited, detail.panasAfraid, detail.panasInterested,
     detail.panasDistressed, detail.panasInspired, detail.panasStressed,
   ]
+  const { pa: actualPA, na: actualNA } = computePanas(panasActual, panasItems)
 
   return (
     <div
@@ -114,10 +115,20 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
 
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">PANAS 情緒</h3>
+              <div className="flex gap-3 mb-2">
+                <div className="flex-1 bg-green-50 rounded-lg py-1.5 text-center">
+                  <div className="text-xs text-gray-500">PA 正向</div>
+                  <div className="font-bold text-green-600">{actualPA.toFixed(2)}</div>
+                </div>
+                <div className="flex-1 bg-red-50 rounded-lg py-1.5 text-center">
+                  <div className="text-xs text-gray-500">NA 負向</div>
+                  <div className="font-bold text-red-500">{actualNA.toFixed(2)}</div>
+                </div>
+              </div>
               <div className="space-y-1">
                 {panasItems.map((item, i) => (
                   <div key={i} className="flex justify-between text-xs">
-                    <span className="text-gray-500">{item.label}</span>
+                    <span className={item.valence === 'positive' ? 'text-green-600' : 'text-red-400'}>{item.label}</span>
                     <span className="font-medium text-gray-700">{panasActual[i]}</span>
                   </div>
                 ))}
@@ -187,10 +198,30 @@ export default function ParticipantModal({ detail, tipiQuestions, panasItems, on
 
                               <div>
                                 <p className="text-xs font-medium text-gray-500 mb-1">PANAS 比對（推斷 vs 實際）</p>
+                                {(() => {
+                                  const analyzedScores = panasItems.map((_, i) =>
+                                    (analysis.panasKeys ? analysis.panas[analysis.panasKeys[i]] : undefined) ?? 0
+                                  )
+                                  const { pa: analyzedPA, na: analyzedNA } = computePanas(analyzedScores, panasItems)
+                                  return (
+                                    <div className="flex gap-3 mb-2">
+                                      <div className="flex-1 bg-green-50 rounded-lg py-1.5 text-center">
+                                        <div className="text-xs text-gray-500">PA 正向</div>
+                                        <div className="text-xs font-bold text-brand-600">{analyzedPA.toFixed(2)}</div>
+                                        <div className="text-xs text-gray-400">vs {actualPA.toFixed(2)}</div>
+                                      </div>
+                                      <div className="flex-1 bg-red-50 rounded-lg py-1.5 text-center">
+                                        <div className="text-xs text-gray-500">NA 負向</div>
+                                        <div className="text-xs font-bold text-brand-600">{analyzedNA.toFixed(2)}</div>
+                                        <div className="text-xs text-gray-400">vs {actualNA.toFixed(2)}</div>
+                                      </div>
+                                    </div>
+                                  )
+                                })()}
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                                   {panasItems.map((item, i) => (
                                     <div key={i} className="flex items-center gap-1 text-xs">
-                                      <span className="w-20 text-gray-500 shrink-0">{item.label}</span>
+                                      <span className={`w-20 shrink-0 ${item.valence === 'positive' ? 'text-green-600' : 'text-red-400'}`}>{item.label}</span>
                                       <span className="text-brand-600 font-medium">{(analysis.panasKeys ? analysis.panas[analysis.panasKeys[i]] : undefined)?.toFixed(1) ?? '—'}</span>
                                       <span className="text-gray-300 text-xs">vs</span>
                                       <span className="text-gray-500 font-medium">{panasActual[i]}</span>

@@ -37,6 +37,9 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
   function setPanasLabel(i: number, label: string) {
     setSettings(p => { const items = [...p.panasItems]; items[i] = { ...items[i], label }; return { ...p, panasItems: items } })
   }
+  function setPanasValence(i: number, valence: 'positive' | 'negative') {
+    setSettings(p => { const items = [...p.panasItems]; items[i] = { ...items[i], valence }; return { ...p, panasItems: items } })
+  }
   function setDescription(key: keyof SurveyDescriptions, v: string) {
     setSettings(p => ({ ...p, descriptions: { ...p.descriptions, [key]: v } }))
   }
@@ -204,7 +207,7 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div>
           <h3 className="font-semibold text-gray-800">情緒量表（PANAS）題目</h3>
-          <p className="text-xs text-gray-400 mt-1">修改標籤後，舊有畫作分析需重新分析才能對應新標籤</p>
+          <p className="text-xs text-gray-400 mt-1">正向：計入 PA（正向情緒）；負向：計入 NA（負向情緒）。修改標籤後舊有分析需重新分析。</p>
         </div>
         <div className="space-y-2">
           {panasItems.map((item, i) => (
@@ -212,6 +215,16 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
               <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
               <input value={item.label} onChange={e => setPanasLabel(i, e.target.value)}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+              <button
+                onClick={() => setPanasValence(i, item.valence === 'positive' ? 'negative' : 'positive')}
+                className={`text-xs px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
+                  item.valence === 'positive'
+                    ? 'bg-green-50 border-green-200 text-green-600'
+                    : 'bg-red-50 border-red-200 text-red-600'
+                }`}
+              >
+                {item.valence === 'positive' ? '正向' : '負向'}
+              </button>
             </div>
           ))}
         </div>
