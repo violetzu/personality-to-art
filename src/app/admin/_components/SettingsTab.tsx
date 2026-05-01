@@ -219,8 +219,8 @@ export default function SettingsTab({ settings, setSettings, onSave }: SettingsT
                 onClick={() => setPanasValence(i, item.valence === 'positive' ? 'negative' : 'positive')}
                 className={`text-xs px-2.5 py-1.5 rounded-lg border font-medium transition-colors ${
                   item.valence === 'positive'
-                    ? 'bg-green-50 border-green-200 text-green-600'
-                    : 'bg-red-50 border-red-200 text-red-600'
+                    ? 'bg-gray-50 border-gray-200 text-teal-700'
+                    : 'bg-gray-50 border-gray-200 text-rose-700'
                 }`}
               >
                 {item.valence === 'positive' ? '正向' : '負向'}
